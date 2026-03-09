@@ -1,13 +1,13 @@
 import * as oauth from 'oauth4webapi';
-import { OAUTH_URL, CLIENT_ID, CLIENT_SECRET } from '$env/dynamic/private';
+import { env } from '$env/dynamic/private';
 import { update_username } from '$lib/server/db';
 
 const config: oauth.AuthorizationServer = await oauth
-	.discoveryRequest(new URL(OAUTH_URL), { algorithm: 'oidc' })
-	.then((response) => oauth.processDiscoveryResponse(new URL(OAUTH_URL), response));
+	.discoveryRequest(new URL(env.OAUTH_URL), { algorithm: 'oidc' })
+	.then((response) => oauth.processDiscoveryResponse(new URL(env.OAUTH_URL), response));
 
-const client: oauth.Client = { client_id: CLIENT_ID };
-const clientAuth = oauth.ClientSecretPost(CLIENT_SECRET);
+const client: oauth.Client = { client_id: env.CLIENT_ID };
+const clientAuth = oauth.ClientSecretPost(env.CLIENT_SECRET);
 
 export async function authorize(
 	redirect_uri: string,

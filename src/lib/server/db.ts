@@ -1,8 +1,8 @@
 import { Database } from 'bun:sqlite';
 import { migrate } from './migrate';
-import { DB_FILE } from '$env/dynamic/private';
+import { env } from '$env/dynamic/private';
 
-const db = new Database(DB_FILE || ':memory:');
+const db = new Database(env.DB_FILE || ':memory:');
 
 // Enable WAL mode for better performance
 db.run('PRAGMA journal_mode = WAL;');
