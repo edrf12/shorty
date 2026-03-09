@@ -1,0 +1,48 @@
+import { redirect } from '@sveltejs/kit';
+import { authorize, exchange, introspect, refresh } from '$lib/server/auth';
+import type { LayoutServerLoad } from './$types';
+
+export const load: LayoutServerLoad = async ({ url: pageUrl, locals, cookies }) => {
+	// Received oauth callback
+	if (pageUrl.searchParams.get('code')) {
+		// Get and delete auth cookies
+		const code_verifier = cookies.get('code_verifier');
+		const nonce = cookies.get('nonce');
+		cookies.delete('code_verifier', { path: '' });
+		cookies.delete('nonce', { path: '' });
+
+		if (!code_verifier) {
+			throw new Error('Invalid state');
+		}
+		const { token, claims } = await exchange(code_verifier, nonce, pageUrl);
+
+		// Set auth cookies
+		cookies.set('shorts_authorization', token.access_token, { path: '/', sameSite: true });
+		if (token.refresh_token) {
+			cookies.set('shorts_refresh', token.refresh_token, { path: '/', sameSite: true });
+		}
+
+		throw redirect(302, '/d');
+	}
+
+	// User is not authenticated
+	if (!cookies.get('shorts_authorization') || !introspect(cookies.get('shorts_authorization')!)) {
+		cookies.delete('shorts_authorization', { path: '/' });
+
+		if (cookies.get('shorts_refresh')) {
+			const { token, claims } = await refresh(cookies.get('shorts_refresh')!);
+			cookies.set('shorts_authorization', token.access_token, { path: '/', sameSite: true });
+			if (token.refresh_token) {
+				cookies.set('shorts_refresh', token.refresh_token, { path: '/', sameSite: true });
+			}
+			locals.user = claims;
+			throw redirect(302, '/d');
+		}
+		const { code_verifier, nonce, url } = await authorize(pageUrl.href, 'email openid profile');
+		cookies.set('code_verifier', code_verifier, { path: '', sameSite: true });
+		if (nonce) {
+			cookies.set('nonce', nonce, { path: '', sameSite: true });
+		}
+		throw redirect(302, url);
+	}
+};
