@@ -1,6 +1,6 @@
 import { Database } from 'bun:sqlite';
 import { migrate } from './migrate';
-import { DB_FILE } from '$env/static/private';
+import { DB_FILE } from '$env/dynamic/private';
 
 const db = new Database(DB_FILE || ':memory:');
 
