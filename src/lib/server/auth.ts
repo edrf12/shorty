@@ -1,5 +1,5 @@
 import * as oauth from 'oauth4webapi';
-import { OAUTH_URL, CLIENT_ID, CLIENT_SECRET } from '$env/static/private';
+import { OAUTH_URL, CLIENT_ID, CLIENT_SECRET } from '$env/dynamic/private';
 import { update_username } from '$lib/server/db';
 
 const config: oauth.AuthorizationServer = await oauth
